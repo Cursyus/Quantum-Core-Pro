@@ -3,6 +3,9 @@ import time
 import queue
 import logging
 import sys
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from core.engine import TradingEngine
 from core.config import Config
 from core.telegram_bot import TelegramManager
@@ -13,6 +16,18 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[logging.StreamHandler(sys.stdout)]
 )
+
+# Classe simples para responder ao Ping (Health Check do Render)
+class PingHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is Alive!")
+
+def run_ping_server():
+    port = int(os.getenv("PORT", 10000))
+    server = HTTPServer(('0.0.0.0', port), PingHandler)
+    server.serve_forever()
 
 async def main_server():
     print("☁️  INICIANDO QUANTUMCORE PRO - MODO SERVIDOR (HEADLESS)")
@@ -36,6 +51,9 @@ async def main_server():
     
     # Envia aviso de subida
     await telegram.send_notification("☁️ **BOT ONLINE NA NUVEM**\n\nModo: Headless Server\nStatus: Monitorando 24/7 🚀")
+
+    # Inicia servidor de Ping em background
+    threading.Thread(target=run_ping_server, daemon=True).start()
 
     # 5. Loop Principal (Infinito)
     try:

@@ -15,6 +15,8 @@ class TradingEngine:
         self.active_trades = {}
         self.cooldown_list = {} # Guarda o tempo da última venda de cada moeda
         
+        self._setup_db()
+        
         # Configuração da Binance
         self.exchange = ccxt.binance({
             'apiKey': config.API_KEY, 
@@ -34,6 +36,24 @@ class TradingEngine:
         
         self.portfolio = {'available_capital': 0.0, 'floating_pnl': 0.0}
         self._load_state()
+
+    def _setup_db(self):
+        conn = sqlite3.connect('trades_history.db')
+        cursor = conn.cursor()
+        # Cria a tabela de trades se ela não existir
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trades (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                symbol TEXT,
+                side TEXT,
+                price REAL,
+                qty REAL,
+                pnl REAL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
 
     def _load_state(self):
         if os.path.exists('active_trades.json'):
