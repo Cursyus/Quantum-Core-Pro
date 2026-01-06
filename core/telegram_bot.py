@@ -76,7 +76,8 @@ class TelegramManager:
         count = res[0] or 0
         total_pnl = res[1] or 0.0
         
-        msg = f"🤖 **STATUS ATUAL**\n\n✅ Trades Hoje: {count}\n💵 PnL Hoje: *${total_pnl:.2f}*\n🔋 Slots: {len(self.engine.active_trades)}/2"
+        slots_ocupados = len(self.engine.active_trades) if self.engine else 0
+        msg = f"🤖 **STATUS ATUAL**\n\n✅ Trades Hoje: {count}\n💵 PnL Hoje: *${total_pnl:.2f}*\n🔋 Slots: {slots_ocupados}/2"
         await update.message.reply_text(msg, parse_mode='Markdown')
 
     async def send_notification(self, text):
